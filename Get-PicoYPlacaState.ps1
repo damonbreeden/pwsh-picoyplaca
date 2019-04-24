@@ -1,90 +1,85 @@
 function Get-PicoYPlacaState {
-[CmdletBinding()]
-param (
-    [Parameter(Mandatory)]
-    [string]$plateNumber,
-    [string]$date,
-    [string]$time,
-    [int]$startTime = 600,
-    [int]$endTime = 1800
-)
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]$plateNumber,
+        [string]$date,
+        [string]$time,
+        [int]$startTime = 600,
+        [int]$endTime = 1800
+    )
 
-# Write-Host $PSBoundParameters
+    # Write-Host $PSBoundParameters
 
-# The default ruleset allows plates with even numbered last digits to drive on Monday, Wednesday, Friday
-# Odd-numbered last digits can drive on Tuesday, Thursday and Saturday. All cars can drive on Sunday
-# The rules are in effect from 6 AM (6:00) to 6 PM (18:00)
+    # The default ruleset allows plates with even numbered last digits to drive on Monday, Wednesday, Friday
+    # Odd-numbered last digits can drive on Tuesday, Thursday and Saturday. All cars can drive on Sunday
+    # The rules are in effect from 6 AM (6:00) to 6 PM (18:00)
 
-# If date or time not specified, assume now
-if (!($PSBoundParameters.date)) {
-    #write-host "getting date from system"
-    [datetime]$date = Get-Date
-    $year = $date.Year
-    $month = $date.Month
-    $day = $date.Day
-}
-else {
-    write-host "date entered from switch"
-    write-host $date
-    [datetime]$date = $date -as [DateTime];
-    if ($date.GetType().Name -ne "DateTime") {
-        Write-Host -BackgroundColor Red -ForegroundColor Black "Invalid Date entered. Enter date in YYYY-MM-DD format"
-        Break
+    # If date or time not specified, assume now
+    if (!($PSBoundParameters.date)) {
+        [datetime]$date = Get-Date
+        $year = $date.Year
+        $month = $date.Month
+        $day = $date.Day
     }
-    $year = $date.Year
-    $month = $date.Month
-    $day = $date.Day
-}
-if (!($PSBoundParameters.time)) {
-    #write-host "getting time from system"
-    [string]$time = Get-Date -Format HH:mm
-    [string]$hour = Get-Date -Format HH
-    [string]$minute = Get-Date -Format mm
-}
-else {
-    write-host "time entered by switch"
-    #checks that the time entered is usable
-    [datetime]$time = $time -as [DateTime];
-    if ($time.GetType().Name -ne "DateTime") {
-        Write-Host -BackgroundColor Red -ForegroundColor Black "Invalid Time entered. Enter time in HH:MM format"
-        Break
+    else {
+        [datetime]$date = $date -as [DateTime];
+        if ($date.GetType().Name -ne "DateTime") {
+            Write-Host -BackgroundColor Red -ForegroundColor Black "Invalid Date entered. Enter date in YYYY-MM-DD format"
+            Break
+        }
+        $year = $date.Year
+        $month = $date.Month
+        $day = $date.Day
     }
-    $hour = $time.hour
-    $minute = $time.minute
-}
+    if (!($PSBoundParameters.time)) {
+        [string]$time = Get-Date -Format HH:mm
+        [string]$hour = Get-Date -Format HH
+        [string]$minute = Get-Date -Format mm
+    }
+    else {
+        #checks that the time entered is usable
+        [datetime]$time = $time -as [DateTime];
+        if ($time.GetType().Name -ne "DateTime") {
+            Write-Host -BackgroundColor Red -ForegroundColor Black "Invalid Time entered. Enter time in HH:MM format"
+            Break
+        }
+        $hour = $time.hour
+        $minute = $time.minute
+    }
 
-$lastDigit = $plateNumber[-1]
-#Make sure the last digit is an int
-if ($lastDigit -notmatch "^[0-9]*$") {
-    Write-Host -BackgroundColor Red -ForegroundColor Black "Expected last character of plate to be an integer, is not. Cannot continue"
-    break
-}
+    $lastDigit = $plateNumber[-1]
+    #Make sure the last digit is an int
+    if ($lastDigit -notmatch "^[0-9]*$") {
+        Write-Host -BackgroundColor Red -ForegroundColor Black "Expected last character of plate to be an integer, is not. Cannot continue"
+        break
+    }
 
-$dayOfWeek = (Get-Date $date).DayOfWeek
-#fix a seeming bug in Powershell
-if ($minute.Length -eq 1) {
-    [string]$minute = "0" + $minute
-}
+    $dayOfWeek = (Get-Date $date).DayOfWeek
+    #fix a seeming bug in Powershell
+    if ($minute.Length -eq 1) {
+        [string]$minute = "0" + $minute
+    }
 
-$fancyDate = Get-Date -Year $year -Month $month -Day $day -Hour $hour -Minute $minute
-[int]$timeInt = "$hour" + "$minute"
-Write-Host $plateNumber $date $time $dayOfWeek $timeInt
-if (($timeInt -lt $startTime) -or ($timeInt -gt $endTime) -or ($dayOfWeek -eq "Sunday")) {
-    Write-Host -BackgroundColor Green -ForegroundColor Black "Rules not in effect, all cars allowed on road"
-}
-# run even plates here
-elseif ((($lastDigit % 2) -eq 0) -and 
-    (($dayOfWeek -eq "Monday") -or ($dayOfWeek -eq "Wednesday") -or ($dayOfWeek -eq "Friday"))) {
-    Write-Host -BackgroundColor Green -ForegroundColor Black "Plate $plateNumber is allowed to be on the road on $fancyDate"
-}
-#run odd plates
-elseif ((($lastDigit % 2) -eq 1) -and 
-    (($dayOfWeek -eq "Tuesday") -or ($dayOfWeek -eq "Thursday") -or ($dayOfWeek -eq "Saturday"))) {
-    Write-Host -BackgroundColor Green -ForegroundColor Black "Plate $plateNumber is allowed to be on the road on $fancyDate"
-}
-else {
-    Write-Host -BackgroundColor Red "Plate $plateNumber is not allowed to be on the road on $fancyDate"
-}
+    $fancyDate = Get-Date -Year $year -Month $month -Day $day -Hour $hour -Minute $minute
+    [int]$timeInt = "$hour" + "$minute"
+
+    if (($timeInt -lt $startTime) -or ($timeInt -gt $endTime) -or ($dayOfWeek -eq "Sunday")) {
+        Write-Host -BackgroundColor Green -ForegroundColor Black "Rules not in effect, all cars allowed on road"
+    }
+    # run even plates here
+    elseif ((($lastDigit % 2) -eq 0) -and 
+        (($dayOfWeek -eq "Monday") -or ($dayOfWeek -eq "Wednesday") -or ($dayOfWeek -eq "Friday"))) {
+        Write-Host -BackgroundColor Green -ForegroundColor Black "Plate $plateNumber is allowed to be on the road on $fancyDate"
+    }
+    #run odd plates
+    elseif ((($lastDigit % 2) -eq 1) -and 
+        (($dayOfWeek -eq "Tuesday") -or ($dayOfWeek -eq "Thursday") -or ($dayOfWeek -eq "Saturday"))) {
+        Write-Host -BackgroundColor Green -ForegroundColor Black "Plate $plateNumber is allowed to be on the road on $fancyDate"
+    }
+    else {
+        Write-Host -BackgroundColor Red "Plate $plateNumber is not allowed to be on the road on $fancyDate"
+    }
 }
 <#
     .SYNOPSIS
@@ -132,11 +127,20 @@ Get-PicoYPlacaState -plateNumber $evenPlate -time 16:00
 Write-Host "Run an odd plate today at 4 PM"
 Get-PicoYPlacaState -plateNumber $oddPlate -time 16:00
 
-Write-Host "Uncomment line 136 to enter an invalid date. This results in an error."
+Write-Host "Uncomment line 131 to enter an invalid date. This results in an error."
 #Get-PicoYPlacaState -plateNumber $evenPlate -date Today
 
-Write-Host "Uncomment line 139 to enter an invalid plate. This results in an error."
+Write-Host "Uncomment line 134 to enter an invalid plate. This results in an error."
 #Get-PicoYPlacaState -plateNumber 1234-aaa
 
-Write-Host "Uncomment line 142 to enter an invalid time. This results in an error."
+Write-Host "Uncomment line 137 to enter an invalid time. This results in an error."
 #Get-PicoYPlacaState -plateNumber $evenPlate -time "1500 PM"
+
+Write-Host "Runs an even plate on a Tuesday at 6 AM in the past"
+Get-PicoYPlacaState -plateNumber $evenPlate -date 2019-03-05 -time 06:00
+
+Write-Host "Runs an even plate on a Tuesday at 5:59 AM in the past"
+Get-PicoYPlacaState -plateNumber $evenPlate -date 2019-03-05 -time 05:59
+
+Write-Host "Runs an odd plate on a Sunday in the past"
+Get-PicoYPlacaState -plateNumber $oddPlate -date 2019-03-03
