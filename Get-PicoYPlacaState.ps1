@@ -9,8 +9,6 @@ function Get-PicoYPlacaState {
         [int]$endTime = 1800
     )
 
-    # Write-Host $PSBoundParameters
-
     # The default ruleset allows plates with even numbered last digits to drive on Monday, Wednesday, Friday
     # Odd-numbered last digits can drive on Tuesday, Thursday and Saturday. All cars can drive on Sunday
     # The rules are in effect from 6 AM (6:00) to 6 PM (18:00)
@@ -85,7 +83,7 @@ function Get-PicoYPlacaState {
     .SYNOPSIS
     This script takes a plate number and a date and time and returns if the car will be allowed to be driving.
     .PARAMETER plateNumber
-        A 6-7 digit alphanumeric plate number.
+        A 6-7 digit alphanumeric plate number. By default rules the plate must end with an integer.
     .PARAMETER date
         The date in the format YYYY-MM-DD. If not specified, the program will assume today's date. This is not dependent on time being specified.
     .PARAMETER time
@@ -127,13 +125,13 @@ Get-PicoYPlacaState -plateNumber $evenPlate -time 16:00
 Write-Host "Run an odd plate today at 4 PM"
 Get-PicoYPlacaState -plateNumber $oddPlate -time 16:00
 
-Write-Host "Uncomment line 131 to enter an invalid date. This results in an error."
+Write-Host "Uncomment line 129 to enter an invalid date. This results in an error."
 #Get-PicoYPlacaState -plateNumber $evenPlate -date Today
 
-Write-Host "Uncomment line 134 to enter an invalid plate. This results in an error."
+Write-Host "Uncomment line 132 to enter an invalid plate. This results in an error."
 #Get-PicoYPlacaState -plateNumber 1234-aaa
 
-Write-Host "Uncomment line 137 to enter an invalid time. This results in an error."
+Write-Host "Uncomment line 135 to enter an invalid time. This results in an error."
 #Get-PicoYPlacaState -plateNumber $evenPlate -time "1500 PM"
 
 Write-Host "Runs an even plate on a Tuesday at 6 AM in the past"
